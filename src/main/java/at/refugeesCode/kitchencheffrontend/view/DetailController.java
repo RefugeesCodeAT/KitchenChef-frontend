@@ -6,18 +6,15 @@ import at.refugeesCode.kitchencheffrontend.persistence.model.*;
 import at.refugeesCode.kitchencheffrontend.persistence.repository.MealRepository;
 import at.refugeesCode.kitchencheffrontend.persistence.repository.UserRepository;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 
 @Controller
 @RequestMapping("/detail")
@@ -28,6 +25,9 @@ public class DetailController {
     private UserRepository userRepository;
     private MealRepository mealRepository;
     private DetailService detailService;
+    private String mealId;
+    private Boolean joined;
+    private String volunteerName;
 
     public DetailController(AddMealService addMealService, UserRepository userRepository, MealRepository mealRepository, DetailService detailService) {
         this.addMealService = addMealService;
@@ -36,189 +36,118 @@ public class DetailController {
         this.detailService = detailService;
     }
 
-   /* @ModelAttribute("users")
-    List<AppUser> users() {
-        return userRepository.findAll();
-    }*/
-
     @ModelAttribute("newUser")
     AppUser newUser() {
         return new AppUser();
     }
+
     @GetMapping
     String page() {
         return "detail";
     }
 
-    @GetMapping("/mealdetail/shoppinglist/{id}")
+   /* @GetMapping("/mealdetail/shoppinglist/{id}")
     String showShoppingList(@PathVariable("id") String id, Model model) {
         Meal meal = addMealService.detailPage(id);
         model.addAttribute("shoppinglist", meal.getIngredients());
         return "shoppinglist";
-    }
+    }*/
 
     @GetMapping("/mealdetail/{id}")
-    String detailPage(@PathVariable("id") String id, Model model, Principal principal){
-        //Meal meal = addMealService.detailPage(id);
+    String detailPage(@PathVariable("id") String id, Model model, Principal principal) {
+        mealId = id;
         disable = principal != null ? false : true;
-        Optional<Meal> meal = mealRepository.findById(id);
-        List<Ingredient> ingredients = meal.get().getIngredients();
-        List<Attendees> attendants = meal.get().getAttendants();
+        mealRepository.findById(id).ifPresent(meal -> {
+            List <Ingredient> ingredients = meal.getIngredients();
+            if (principal != null) {
+                volunteerName = principal.getName();
+                joined = meal.getAttendees().stream().anyMatch(e -> e.equals(volunteerName));
+            }
+            model.addAttribute("mealdetail", meal);
+            model.addAttribute("ingredients", ingredients);
+            model.addAttribute("disable", disable);
+            model.addAttribute("joinedEating", joined);
 
-        model.addAttribute("mealdetail", meal.get());
-        model.addAttribute("ingredients", ingredients);
-        model.addAttribute("attendants", attendants);
-        model.addAttribute("disable", disable);
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        model.addAttribute("username", username);
-
-
-
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            model.addAttribute("username", username);
+        });
         return "detail";
     }
 
-    @PostMapping("/registration/{userId}/{mealId}")
-    String registration(@PathVariable("userId") String userId ,@PathVariable("mealId") String mealId, Model model){
-        Idess idess = new Idess();
-
-        Optional<AppUser> byId = userRepository.findById(userId);
-        Meal meal = addMealService.detailPage(mealId);
-
-        String meal_id = meal.getId();
-        List<Attendees> attendants = meal.getAttendants();
-
-        if (byId.isPresent()){
-            List<Idess> mealRegistration = byId.get().getMealRegistration();
-
-            if (!mealRegistration.isEmpty()){
-
-                for (int i = 0; i <= mealRegistration.size(); i++){
-
-                    if(mealRegistration.get(i) != null)
-                        if(mealRegistration.get(i).getId().equalsIgnoreCase(meal_id)){
-
-//                        ------------ Deregister meal Registration -----------------
-                            mealRegistration.remove(mealRegistration.get(i));
-                            byId.get().setMealRegistration(mealRegistration);
-                            userRepository.save(byId.get());
-//                        ------------ Deregister meal Registration -----------------
-                            if (!meal.getAttendants().isEmpty()){
-//                              iterate over each attendants id and check if he exist in the Attendants list
-                                for (int j = 0; j<meal.getAttendants().size(); j++){
-//                                    Create new Attendant if is not already exist in the Attendants list
-                                    if(!meal.getAttendants().get(j).getId().equalsIgnoreCase(byId.get().getUsername())){
-//                        ---------------- Create new Attendants ----------
-                                        Attendees attendees = new Attendees();
-                                        attendees.setId(byId.get().getId());
-                                        attendees.setUsername(byId.get().getUsername());
-                                        attendants.add(attendees);
-                                        meal.setAttendants(attendants);
-                                        mealRepository.save(meal);
-//                        ---------------- Create new Attendants ----------
-                                    }
-                                    else {
-//                        ------------ Deregister from Attendants -----------------
-                                        attendants.remove(meal.getAttendants().get(j));
-                                        meal.setAttendants(attendants);
-                                        mealRepository.save(meal);
-//                        ------------ Deregister Attendants -----------------
-
-                                    }
-                                }
-                            }else {
-//                        ---------------- Create new Attendants ----------
-                                Attendees attendees = new Attendees();
-                                attendees.setId(byId.get().getId());
-                                attendees.setUsername(byId.get().getUsername());
-                                attendants.add(attendees);
-                                meal.setAttendants(attendants);
-                                mealRepository.save(meal);
-//                        ---------------- Create new Attendants ----------
-                            }
-                        }
-                        else {
-                            idess.setId(meal_id);
-                            mealRegistration.add(idess);
-                            byId.get().setMealRegistration(mealRegistration);
-                            userRepository.save(byId.get());
-                            if (!meal.getAttendants().isEmpty()){
-//                              iterate over each attendants id and check if he exist in the Attendants list
-                                for (int j = 0; j<meal.getAttendants().size(); j++){
-//                                    Create new Attendant if is not already exist in the Attendants list
-                                    if(!meal.getAttendants().get(j).getId().equalsIgnoreCase(byId.get().getUsername())){
-//                        ---------------- Create new Attendants ----------
-                                        Attendees attendees = new Attendees();
-                                        attendees.setId(byId.get().getId());
-                                        attendees.setUsername(byId.get().getUsername());
-
-                                        attendants.add(attendees);
-                                        meal.setAttendants(attendants);
-                                        mealRepository.save(meal);
-//                        ---------------- Create new Attendants ----------
-                                    }
-                                    else {
-//                        ------------ Deregister from Attendants-----------------
-                                        attendants.remove(meal.getAttendants().get(j));
-                                        meal.setAttendants(attendants);
-                                        mealRepository.save(meal);
-//                        ------------ Deregister Attendants -----------------
-
-                                    }
-                                }
-                            }else {
-//                        ---------------- Create new Attendants ----------
-                                Attendees attendees = new Attendees();
-                                attendees.setId(byId.get().getId());
-                                attendees.setUsername(byId.get().getUsername());
-                                attendants.add(attendees);
-                                meal.setAttendants(attendants);
-                                mealRepository.save(meal);
-//                        ---------------- Create new Attendants ----------
-                            }
-                        }
-                }
+    @PostMapping(value = "/mealdetail/{id}/signUp", params = "signup=eat")
+    String saveAttendance(Principal principal, Model model) {
+        mealRepository.findById(mealId).ifPresent(meal -> {
+            joined = meal.getAttendees().stream().anyMatch(e -> e.equals(volunteerName));
+            if (joined) {
+                meal.getAttendees().remove(volunteerName);
+                joined = false;
+            } else {
+                meal.getAttendees().add(volunteerName);
+                joined = true;
             }
-            else {
-                idess.setId(meal_id);
-                mealRegistration.add(idess);
-                byId.get().setMealRegistration(mealRegistration);
-                userRepository.save(byId.get());
-                if (!meal.getAttendants().isEmpty()){
-//                  iterate over each attendants id and check if he exist in the Attendants list
-                    for (int j = 0; j<meal.getAttendants().size(); j++){
-//                      Create new Attendant if is not already exist in the Attendants list
-                        if(!meal.getAttendants().get(j).getId().equalsIgnoreCase(byId.get().getUsername())){
-                            Attendees attendees = new Attendees();
-                            attendees.setId(byId.get().getId());
-                            attendees.setUsername(byId.get().getUsername());
-                            attendants.add(meal.getAttendants().get(j));
-                            meal.setAttendants(attendants);
-                            mealRepository.save(meal);
-                        }
-                        else {
-//                        ------------ Deregister from Attendants should be bottom here -----------------
-                            attendants.remove(meal.getAttendants().get(j));
-                            meal.setAttendants(attendants);
-                            mealRepository.save(meal);
-//                        ------------ Deregister Attendants should be top here -----------------
+            model.addAttribute("joinedEating", joined);
+            model.addAttribute("mealdetail", meal);
+            Meal updatedMeal = save(meal);
+        });
+        return "detail";
+    }
 
-                        }
-                    }
-                }else {
-                    Attendees attendees = new Attendees();
-                    attendees.setId(byId.get().getId());
-                    attendees.setUsername(byId.get().getUsername());
-                    attendants.add(attendees);
-                    meal.setAttendants(attendants);
-                    mealRepository.save(meal);
-                }
+    @PostMapping(value = "/mealdetail/{id}/signUp", params = "signup=cleaner")
+    String saveCleaner(Principal principal, Model model) {
+        mealRepository.findById(mealId).ifPresent(meal -> {
+            if (meal.getCleaner() == null) {
+                meal.setCleaner(volunteerName);
+                meal.getAttendees().add(volunteerName);
+            } else if (meal.getCleaner().equals(volunteerName)) {
+                meal.setCleaner(null);
+                meal.getAttendees().remove(volunteerName);
+            } else {
             }
-        }
-        else {
-            return "error";
-        }
-        return "redirect:/";
+            model.addAttribute("mealdetail", meal);
+            Meal updatedMeal = save(meal);
+        });
+        return "detail";
+    }
+
+    @PostMapping(value = "/mealdetail/{id}/signUp", params = "signup=helper")
+    String saveHelper(Principal principal, Model model) {
+        mealRepository.findById(mealId).ifPresent(meal -> {
+            if (meal.getHelper() == null) {
+                meal.setHelper(volunteerName);
+                meal.getAttendees().add(volunteerName);
+            } else if (meal.getHelper().equals(volunteerName)) {
+                meal.setHelper(null);
+                meal.getAttendees().remove(volunteerName);
+            } else {
+            }
+            model.addAttribute("mealdetail", meal);
+            Meal updatedMeal = save(meal);
+        });
+        return "detail";
+    }
+
+    @PostMapping(value = "/mealdetail/{id}/signUp", params = "signup=shopper")
+    String saveShoper(Principal principal, Model model) {
+        mealRepository.findById(mealId).ifPresent(meal -> {
+            if (meal.getShopper() == null) {
+                meal.setShopper(volunteerName);
+                meal.getAttendees().add(volunteerName);
+            } else if (meal.getShopper().equals(volunteerName)) {
+                meal.setShopper(null);
+                meal.getAttendees().remove(volunteerName);
+            } else {
+            }
+
+            model.addAttribute("mealdetail", meal);
+            Meal updatedMeal = save(meal);
+        });
+        return "detail";
+    }
+
+    @Transactional
+    public Meal save(Meal meal) {
+        return mealRepository.save(meal);
     }
 }
+

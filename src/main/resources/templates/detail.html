@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <title>Detail Page</title>
     <object th:include="fragments/resources :: head" th:remove="tag"></object>
@@ -8,54 +9,53 @@
 </head>
 <body>
 
-<header>
-    <object th:include="fragments/navigation :: menu" th:remove="tag"></object>
-</header>
+    <header>
+        <object th:include="fragments/navigation :: menu" th:remove="tag"></object>
+    </header>
 
-<div th:if="${disable}==true" class="alert alert-danger">
-<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-<strong>Please log in first!</strong>
-</div>
-
-
-<div class="container">
-    <div id="banner" class="alert alert-danger alert-dismissible">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <h5><strong>Info!</strong> Cooking can only take place if we sign up as a Cleaner, Shopper or Helper</h5>
+    <div th:if="${disable}==true" class="alert alert-danger">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Please log in first!</strong>
     </div>
-</div>
-<div class="container-fluid">
-  <div th:each="user : ${users}">
-    <form th:action="@{'/detail/registration/'+${user.id}+'/' +${mealdetail.id}}" method="post" >
-        <div class="disabled-button-wrapper">
-            <button  name="eat" value="eat" id="eat" class="btn btn-secondary"  th:disabled="${disable}">Join mail
+
+
+    <div class="container">
+        <div id="banner" class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h5><strong>Info!</strong> Cooking can only take place if we sign up as a Cleaner, Shopper or Helper</h5>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <form th:action="@{'/detail/mealdetail/{id}/signUp'}" method="post" >
+            <div id="choosing">
+                <div class="disabled-button-wrapper">
+            <button name="signup" value="eat" id="eat" class="btn btn-secondary"  th:disabled="${disable}">Join meal
             </button>
         </div>
-    </form>
-
-      <span th:each="userRegister : ${user.mealRegistration}">
--                    <h1 th:if="${userRegister.id == mealdetail.id && username == user.username}">you are already joined</h1>
--     </span>
-  </div>
         <br><br>
         <div class="disabled-button-wrapper">
-            <button type="button" name="signup" value="clean" id="clean" class="btn btn-secondary" th:disabled="${disable}">I'll clean
+            <button name="signup" value="cleaner" id="clean" class="btn btn-secondary" th:disabled="${disable}">I'll clean
             </button>
         </div>
         <div class="disabled-button-wrapper">
-            <button type="button" name="signup" value="shop" id="shop" class="btn btn-secondary" th:disabled="${disable}">I'll shop
+            <button  name="signup" value="shopper" id="shop" class="btn btn-secondary" th:disabled="${disable}">I'll shop
             </button>
         </div>
         <div class="disabled-button-wrapper">
-            <button type="button" name="signup" value="help" id="help" class="btn btn-secondary" th:disabled="${disable}">I'll help
+            <button name="signup" value="helper" id="help" class="btn btn-secondary" th:disabled="${disable}">I'll help
             </button>
         </div>
+      </div>
     </form>
+
     <br>
     <div class="row">
-        <div class="col-sm-6" style="background-color:lavenderblush;">
-            <h5>Cook : <span th:text="${mealdetail.cookName}"> Sarah </span></h5><br>
-            <h5>Date : <span th:text="${mealdetail.dateTime}"> 4/10/2018 </span></h5><br>
+        <div class="col-sm-6" style="background-color:lavenderblush;"><br>
+            <h5> The cook : <span th:text="${mealdetail.cookName}"> Sarah </span></h5><br>
+            <h5 th:if="${mealdetail.helper}"><b>Helper : </b><span th:text="${mealdetail.helper}" > Sarah </span></h5><br>
+            <h5 th:if="${mealdetail.cleaner}"><b>Cleaner : </b><span th:text="${mealdetail.cleaner}"> Sarah </span></h5><br>
+            <h5 th:if="${mealdetail.shopper}"><b>Shoper : </b><span th:text="${mealdetail.shopper}"> Sarah </span></h5><br>
+            <h5>The date : <span th:text="${mealdetail.mealDate}"> 4/10/2018 </span></h5><br>
             <h5>Eating start at : <span th:text="${mealdetail.startEatingTime}"> 2:30 O'clock </span></h5><br>
             <h5>Cooking start at : <span th:text="${mealdetail.startCookingTime}"> 11:15 O'clock </span></h5><br>
             <h5>Cooking takes a bout : <span th:text="${mealdetail.preparationTime}"> 3 Hours </span></h5><br>
@@ -74,92 +74,146 @@
                 </table>
             </h5>
 
-            <h5>
-                                <table class="table">
-                                    <tr>
-                                        <th>Attendants</th>
-                                    </tr>
-                                    <tr th:each="attendant : ${attendants}">
-                                        <td th:text="${attendant.username}">1</td>
-                                    <!--</tr>-->
-                                </table>
-                            </h5>
             <h5><a th:href="@{'/detail/mealdetail/shoppinglist/'+${mealdetail.id}}">View Shopping List</a></h5>
             <br>
-             <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#demo"><b>Who's Coming?</b></button>
-                   <ul id="demo" class="collapse">
-                       <li>Ali</li>
-                       <li>Nour</li>
-                   </ul>
+
         </div>
-        <div class="col-sm-6" style="background-color:light;"><br><img th:src="@{'/images/'+ ${mealdetail.foodImage}}"></div>
+        <div class="col-sm-6" style="background-color:lavenderblush;"><br><br><img th:src="@{'/images/'+ ${mealdetail.foodImage}}">
+        <br>
+        <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#demo"><b>Who's Coming?</b></button>
+        <ul id="demo" class="collapse" >
+            <div th:each="attendant : ${mealdetail.attendees}">
+            <li th:text="${attendant}">Ali</li>
+            </div>
+        </ul>
+        </div>
     </div>
    </div>
 <object th:include="fragments/resources :: bottom" th:remove="tag"></object>
-<script th:inline="javascript") >
+<script type="text/javascript" th:inline="javascript" >
 /*<![CDATA[*/
     $(function(){
         $("#banner").hide();
+        var name = /*[[${username}]]*/
+        var cleaning = /*[[${mealdetail.cleaner}]]*/
+        var shopping = /*[[${mealdetail.shopper}]]*/
+        var helping = /*[[${mealdetail.helper}]]*/
+        var eating = /*[[${joinedEating}]]*/
         var notLoged = /*[[${disable}]]*/'default';
-        if (notLoged){
-         $('.disabled-button-wrapper').tooltip({title: "Please log in first!"});
-         }else{
-        $('#eat').toggleClass('btn-secondary btn-primary');
-        $('#clean').toggleClass('btn-secondary btn-warning');
-        $('#shop').toggleClass('btn-secondary btn-danger');
-        $('#help').toggleClass('btn-secondary btn-success');
-        }
+
+         if (notLoged){
+            $('.disabled-button-wrapper').tooltip({title: "Please log in first!"});
+         }else {
+             if (eating){
+                $('#eat').addClass('btn-success').removeClass('btn-secondary');
+                $('#eat').html('&#10003;' +' Joined');
+                if (cleaning == null){
+                    $('#clean').prop('disabled', true);
+                }
+                if (shopping == null){
+                    $('#shop').prop('disabled', true);
+                }
+                if (helping == null){
+                    $('#help').prop('disabled', true);
+                }
+            }else{
+                $('#eat').addClass('btn-primary').removeClass('btn-secondary');
+            }
+
+
+            if (cleaning != null){
+                if (cleaning == name){
+                    $('#clean').html('&#10003;' +' You are cleaning');
+                    $("#choosing div:nth-child(4)").attr("data-original-title", "You already signed up for this.");
+                }
+                $('#clean').addClass('btn-success').removeClass('btn-secondary');
+                $("#choosing div:nth-child(4)").tooltip({title: "Someone else already signed up for this."});
+                $('#clean').html(cleaning +' is cleaning');
+
+            }else{
+                $('#clean').addClass('btn-warning').removeClass('btn-secondary');
+            }
+            if (shopping != null){
+                $('#shop').addClass('btn-success').removeClass('btn-secondary');
+                $("#choosing div:nth-child(5)").tooltip({title: "Someone else already signed up for this."});
+                $('#shop').html(shopping+' is shopping');
+                if (shopping == name){
+                    $('#shop').html('&#10003;'+' You are shopping');
+                    $("#choosing div:nth-child(5)").attr("data-original-title", "You already signed up for this.");
+                }
+            }else{
+                $('#shop').addClass('btn-danger').removeClass('btn-secondary');
+                }
+            if (helping != null){
+                $('#help').addClass('btn-success').removeClass('btn-secondary');
+                $("#choosing div:nth-child(6)").tooltip({title: "Someone else already signed up for this."});
+                $('#help').html(helping+' is helping');
+                if (helping == name){
+                    $('#help').html('&#10003;'+' You are helping');
+                    $("#choosing div:nth-child(6)").attr("data-original-title", "You already signed up for this.");
+                }
+            }else{
+                $('#help').addClass('btn-info').removeClass('btn-secondary');
+                 }
+         }
 
         $('#clean').on('click', function() {
         if ($(this).hasClass('btn-warning')){
-           $("div:nth-child(4)").tooltip({title: "Already found"});
-           $('#clean').addClass('btn-secondary').removeClass('btn-warning');
-        }else{
-             $("#banner").show();
-            setTimeout(function() {
-            $("#banner").hide();
-            }, 10000);
-            $("div:nth-child(4)").tooltip('dispose');
-            $('#clean').addClass('btn-warning').removeClass('btn-secondary');
-        }
+           $("#choosing div:nth-child(4)").tooltip('dispose');
+           $('#clean').addClass('btn-success').removeClass('btn-warning');
+           $('#shop').prop('disabled', true);
+           $('#shop').addClass('btn-secodary').removeClass('btn-danger');
+           $("#choosing div:nth-child(5)").tooltip({title: "You already signed up for something else."});
+           $('#help').prop('disabled', true);
+           $('#help').addClass('btn-secodary').removeClass('btn-info');
+           $("#choosing div:nth-child(6)").tooltip({title: "You already signed up for something else."});
+           $('#eat').prop('disabled', true);
+           $('#eat').addClass('btn-secodary').removeClass('btn-primary');
+           $("#choosing div:nth-child(1)").tooltip({title: "You can join the meal for free."});
+          }
         });
 
-        $('#shop').on('click', function() {
+
+         $('#shop').on('click', function() {
         if ($(this).hasClass('btn-danger')){
-            $("div:nth-child(5)").tooltip({title: "Already found"});
-            $('#shop').addClass('btn-secondary').removeClass('btn-danger');
-
-        }else{
-             $("#banner").show();
-            setTimeout(function() {
-            $("#banner").hide();
-            }, 10000);
-            $("div:nth-child(5)").tooltip('dispose');
-            $('#shop').addClass('btn-danger').removeClass('btn-secondary');
-        }
+           $("#choosing div:nth-child(5)").tooltip('dispose');
+           $('#shop').addClass('btn-success').removeClass('btn-danger');
+           $('#clean').prop('disabled', true);
+           $('#clean').addClass('btn-secodary').removeClass('btn-warning');
+           $("#choosing div:nth-child(4)").tooltip({title: "You already signed up for something else."});
+           $('#help').prop('disabled', true);
+           $('#help').addClass('btn-secodary').removeClass('btn-info');
+           $("#choosing div:nth-child(6)").tooltip({title: "You already signed up for something else."});
+           $('#eat').prop('disabled', true);
+           $('#eat').addClass('btn-secodary').removeClass('btn-primary');
+           $("#choosing div:nth-child(1)").tooltip({title: "You can join the meal for free."});
+           }
         });
 
-        $('#help').on('click', function() {
-        if ($(this).hasClass('btn-success')){
-            $("div:nth-child(6)").tooltip({title: "Already found"});
-            $('#help').addClass('btn-secondary').removeClass('btn-success');
-
-        }else{
-            $("#banner").show();
-            setTimeout(function() {
-            $("#banner").hide();
-            }, 10000);
-            $("div:nth-child(6)").tooltip('dispose');
-            $('#help').addClass('btn-success').removeClass('btn-secondary');
-        }
+         $('#help').on('click', function() {
+        if ($(this).hasClass('btn-info')){
+           $("#choosing div:nth-child(6)").tooltip('dispose');
+           $('#help').addClass('btn-success').removeClass('btn-info');
+           $('#shop').prop('disabled', true);
+           $('#shop').addClass('btn-secodary').removeClass('btn-danger');
+           $("#choosing div:nth-child(5)").tooltip({title: "You already signed up for something else."});
+           $('#clean').prop('disabled', true);
+           $('#clean').addClass('btn-secodary').removeClass('btn-info');
+           $("#choosing div:nth-child(4)").tooltip({title: "You already signed up for something else."});
+           $('#eat').prop('disabled', true);
+           $('#eat').addClass('btn-secodary').removeClass('btn-primary');
+           $("#choosing div:nth-child(1)").tooltip({title: "You can join the meal for free."});
+           }
         });
 
-         if ($('#clean').hasClass('btn-warning') || $('#shop').hasClass('btn-danger') || $('#help').hasClass('btn-success')){
+
+         if ($('#clean').hasClass('btn-warning') || $('#shop').hasClass('btn-danger') || $('#help').hasClass('btn-info')){
             $("#banner").show();
             setTimeout(function() {
             $("#banner").hide();
             }, 15000);
          }
+
     });
 /*]]>*/
 </script>
