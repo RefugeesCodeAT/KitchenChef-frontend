@@ -4,14 +4,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
-import static java.util.Calendar.DATE;
 
 @Document
 public class Meal {
@@ -34,22 +29,21 @@ public class Meal {
     private String cleaner;
     private String shopper;
     private String helper;
-    private List<String> attendees = new ArrayList<>();
+    private List<String> attendees = new ArrayList<String>();
 
     public Meal() {
     }
 
-    public Meal(String cookName, String mealName, String mealDescription, List <Ingredient> ingredients, int numberOfPeople, String startCookingTime, String startEatingTime, String preparationTime, LocalDate mealDate, String foodImage, String cleaner, String shopper, String helper, List <String> attendees) {
+    public Meal(String id,String cookName, String mealName, String mealDescription, List <Ingredient> ingredients, String startCookingTime, String startEatingTime, String preparationTime, LocalDate mealDate, String cleaner, String shopper, String helper, List <String> attendees) {
+        this.id = id;
         this.cookName = cookName;
         this.mealName = mealName;
         this.mealDescription = mealDescription;
         this.ingredients = ingredients;
-        this.numberOfPeople = numberOfPeople;
         this.startCookingTime = startCookingTime;
         this.startEatingTime = startEatingTime;
         this.preparationTime = preparationTime;
         this.mealDate = mealDate;
-        this.foodImage = foodImage;
         this.cleaner = cleaner;
         this.shopper = shopper;
         this.helper = helper;
